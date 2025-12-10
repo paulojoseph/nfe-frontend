@@ -1,0 +1,165 @@
+<div class="min-h-screen bg-slate-50 font-sans text-slate-800 p-6">
+
+  <app-modal-progress [isVisible]="modalVisible" [title]="modalTitle" [message]="modalMessage"
+    [progress]="modalProgress" [mode]="modalMode" (cancelled)="onModalCancel()">
+  </app-modal-progress>
+
+  <div class="max-w-6xl mx-auto">
+    <header class="mb-8 border-b border-slate-200 pb-4">
+      <h1 class="text-3xl font-bold text-slate-700">SEFAZ-MA | Monitoramento Fiscal</h1>
+      <p class="text-slate-500">Painel de Controle de Processamento de Notas</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div *ngFor="let item of dashboard" class="bg-white p-6 rounded-lg shadow-sm border-l-4"
+        [ngClass]="item.STATUS === 'PROCESSADO' ? 'border-emerald-500' : 'border-blue-500'">
+
+        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">
+          {{ item.STATUS || 'PENDENTE' }}
+        </h3>
+        <div class="text-3xl font-bold text-slate-700 mb-2">
+          {{ item.QTD }}
+        </div>
+        <div class="text-sm font-medium text-slate-500 bg-slate-100 inline-block px-2 py-1 rounded">
+          Total: {{ item.TOTAL | currency:'BRL' }}
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-8">
+      <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+        <h2 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
+          📡 Recepção de NFe
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+          <div class="md:col-span-4">
+            <label class="block text-xs font-bold text-slate-500 mb-1">Chave de Acesso</label>
+            <input [(ngModel)]="novaNota.chaveAcesso"
+              class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              placeholder="44 dígitos" maxlength="44">
+          </div>
+
+          <div class="md:col-span-3">
+            <label class="block text-xs font-bold text-slate-500 mb-1">Número</label>
+            <input [(ngModel)]="novaNota.numeroNota"
+              class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none transition"
+              placeholder="Ex: 1001">
+          </div>
+
+          <div class="md:col-span-3">
+            <label class="block text-xs font-bold text-slate-500 mb-1">Valor Total</label>
+            <input [(ngModel)]="novaNota.valorTotal" type="number"
+              class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none transition"
+              placeholder="R$ 0,00">
+          </div>
+
+          <div class="md:col-span-2">
+            <button (click)="salvar()"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition shadow-md hover:shadow-lg active:transform active:scale-95">
+              Receber
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-50 flex justify-end gap-3 border-b border-slate-200">
+        <button (click)="executarProcessamentoEmLote()" [disabled]="processando" [class.opacity-50]="processando"
+          class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded transition shadow flex items-center gap-2">
+          <span *ngIf="processando" class="animate-spin">⚙️</span>
+          <span *ngIf="!processando">⚡</span>
+          {{ processando ? 'Processando...' : 'Rodar Batch (Lote)' }}
+        </button>
+
+
+        <p class="text-center text-xs text-slate-500 mt-2 font-mono">
+          {{ statusProcessamento }}
+        </p>
+      </div>
+    </div>
+    <!-- Fim do Card de Recepção -->
+
+    <!-- Seção de Listagem -->
+    <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
+        📑 Notas Fiscais Processadas
+      </h2>
+
+      <div class="flex gap-3">
+        <button (click)="gerarMassaTeste()" [disabled]="gerandoMassa"
+          class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition shadow-sm hover:shadow flex items-center gap-2 text-sm">
+          <span *ngIf="gerandoMassa" class="animate-spin">🎲</span>
+          <span *ngIf="!gerandoMassa">🚀</span>
+          {{ gerandoMassa ? 'Gerando...' : 'Gerar Massa (5k)' }}
+        </button>
+
+        <button (click)="atualizarDados()"
+          class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2 px-4 rounded transition shadow-sm flex items-center gap-2 text-sm">
+          <span>🔄</span> Atualizar
+        </button>
+      </div>
+    </div>
+
+
+
+    <div class="relative overflow-x-auto bg-white rounded-lg shadow border border-slate-200 min-h-[300px]">
+
+      <!-- Loading Overlay -->
+      <div *ngIf="isLoading"
+        class="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center text-slate-500">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-3"></div>
+        <span class="font-medium animate-pulse">Atualizando dados...</span>
+      </div>
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-100 text-slate-600 uppercase text-xs font-bold">
+          <tr>
+            <th class="p-4 border-b border-slate-200">ID</th>
+            <th class="p-4 border-b border-slate-200">Chave de Acesso</th>
+            <th class="p-4 border-b border-slate-200">Valor</th>
+            <th class="p-4 border-b border-slate-200">Emissão</th>
+            <th class="p-4 border-b border-slate-200">Status</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm text-slate-700">
+          <tr *ngFor="let n of notas" class="hover:bg-slate-50 border-b border-slate-100 last:border-0 transition">
+            <td class="p-4 font-mono text-xs text-slate-500">{{ n.id }}</td>
+            <td class="p-4 font-mono text-xs">{{ n.chaveAcesso }}</td>
+            <td class="p-4 font-bold">{{ n.valorTotal | currency:'BRL' }}</td>
+            <td class="p-4">{{ n.dataEmissao | date:'dd/MM HH:mm' }}</td>
+            <td class="p-4">
+              <span class="px-3 py-1 rounded-full text-xs font-bold" [ngClass]="{
+                          'bg-amber-100 text-amber-700': n.status === 'PENDENTE',
+                          'bg-emerald-100 text-emerald-700': n.status === 'PROCESSADO',
+                          'bg-red-100 text-red-700': n.status === 'MALHA_FINA'
+                        }">
+                {{ n.status }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="notas.length === 0">
+            <td colspan="5" class="p-8 text-center text-slate-400 italic">
+              Nenhuma nota fiscal encontrada na base.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast Container (Fixed Position) -->
+<div class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">
+  <div *ngFor="let t of toasts"
+    class="pointer-events-auto transform transition-all duration-300 ease-in-out hover:scale-105 shadow-lg rounded-lg p-4 min-w-[300px] flex items-center gap-3 border-l-4 animate-slide-in"
+    [ngClass]="{
+      'bg-white text-slate-700 border-emerald-500': t.type === 'success',
+      'bg-white text-slate-700 border-red-500': t.type === 'error',
+      'bg-white text-slate-700 border-blue-500': t.type === 'info'
+    }">
+    <span class="text-xl">
+      {{ t.type === 'success' ? '✅' : t.type === 'error' ? '❌' : 'ℹ️' }}
+    </span>
+    <p class="font-medium text-sm">{{ t.message }}</p>
+  </div>
+</div>
