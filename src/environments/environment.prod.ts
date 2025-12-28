@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  // Sem a barra no final!
+  // Adicionei este comentário só para o Git ver uma mudança
   apiUrl: 'https://nfe-backend-cevz.onrender.com/api/nfe'
 };
