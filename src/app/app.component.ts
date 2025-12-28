@@ -118,15 +118,14 @@ constructor(
 
   atualizarTabela() {
     this.isLoading = true;
-    this.currentPage = 0;
-    this.hasMore = true;
-    this.service.listar(0, this.pageSize).subscribe({
+    // Backend não suporta paginação - carrega todos de uma vez
+    this.service.listarTodas().subscribe({
         next: (dados) => {
           console.log('Notas carregadas:', dados?.length);
           this.ngZone.run(() => {
             this.notas = dados;
             this.totalCarregado = dados.length;
-            this.hasMore = dados.length >= this.pageSize;
+            this.hasMore = false; // Backend não suporta paginação
             this.isLoading = false;
             this.cdRef.detectChanges();
           });
@@ -236,24 +235,34 @@ constructor(
 
   // --- LÓGICA DO BATCH (Async + Polling) ---
 
+  getPendentes(): number {
+    const pendente = this.dashboard.find(d => d.STATUS === 'PENDENTE');
+    return pendente?.QTD || 0;
+  }
+
   executarProcessamentoEmLote() {
+    // Validação: só executa se houver notas pendentes
+    const pendentes = this.getPendentes();
+    if (pendentes === 0) {
+      this.showToast('info', 'Não há notas pendentes para processar.');
+      return;
+    }
+
     this.processando = true;
-    // Mantemos a tabela visível para o usuário acompanhar em tempo real
     this.progressoPercentual = 0;
     this.statusProcessamento = 'Iniciando...';
     
     // Configura Modal
     this.modalTitle = 'Processamento em Lote';
-    this.modalMessage = 'Iniciando processamento no servidor...';
+    this.modalMessage = `Processando ${pendentes} notas...`;
     this.modalMode = 'determinate';
     this.modalProgress = 0;
     this.modalVisible = true;
 
-    // 1. Dispara o start (retorna instantaneamente)
+    // Dispara o start (retorna instantaneamente)
     this.subBatch = this.service.processarBatch().subscribe({
       next: (msg) => {
         console.log("Servidor aceitou o comando:", msg);
-        // O servidor respondeu, agora iniciamos o monitoramento
         this.iniciarPolling();
       },
       error: (err) => {
@@ -287,9 +296,8 @@ constructor(
               this.modalProgress = this.progressoPercentual;
               this.modalMessage = this.statusProcessamento;
 
-              // Atualiza Dashboard e Tabela em tempo real
+              // Atualiza apenas Dashboard (performance - não atualiza tabela)
               this.atualizarDashboard();
-              this.atualizarTabela(); // Mostra notas sendo processadas
               
               // Se quiser ser redundante, mantenha o detectChanges, mas o NgZone já deve resolver
               this.cdRef.detectChanges();
