@@ -43,10 +43,14 @@ export class AppComponent implements OnInit {
   isLoading = false;
   toasts: Toast[] = [];
   private toastCounter = 0;
+  dashboardLoaded = false; // Flag to prevent animation on updates
+
+  // Theme
+  isDarkMode = true;
 
   // Pagination
   currentPage = 0;
-  pageSize = 50;
+  pageSize = 100;
   hasMore = true;
   isLoadingMore = false;
   totalCarregado = 0;
@@ -73,7 +77,21 @@ constructor(
 
   ngOnInit() {
     console.log('AppComponent initialized');
+    // Load theme preference
+    const savedTheme = localStorage.getItem('nfe-theme');
+    this.isDarkMode = savedTheme !== 'light';
+    this.applyTheme();
     this.atualizarDados();
+  }
+
+  toggleTheme() {
+    this.isDarkMode = !this.isDarkMode;
+    localStorage.setItem('nfe-theme', this.isDarkMode ? 'dark' : 'light');
+    this.applyTheme();
+  }
+
+  applyTheme() {
+    document.documentElement.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
   }
 
   showToast(type: 'success' | 'error' | 'info', message: string) {
@@ -92,7 +110,10 @@ constructor(
   }
 
   atualizarDashboard() {
-    this.service.getDashboard().subscribe(dados => this.dashboard = dados);
+    this.service.getDashboard().subscribe(dados => {
+      this.dashboard = dados;
+      this.dashboardLoaded = true;
+    });
   }
 
   atualizarTabela() {

@@ -1,195 +1,102 @@
-<!-- Premium Dark Theme Layout -->
-<div class="min-h-screen p-6 md:p-8">
-
+<!-- Compact Layout with Theme Toggle -->
+<div class="min-h-screen p-4">
   <!-- Progress Toast -->
   <app-modal-progress [isVisible]="modalVisible" [title]="modalTitle" [message]="modalMessage"
-    [progress]="modalProgress" [mode]="modalMode" (cancelled)="onModalCancel()">
-  </app-modal-progress>
+    [progress]="modalProgress" [mode]="modalMode" (cancelled)="onModalCancel()"></app-modal-progress>
 
   <div class="max-w-7xl mx-auto">
-
-    <!-- Header Hero -->
-    <header class="header-hero">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <!-- Header - Compact -->
+    <header class="flex items-center justify-between mb-4 pb-3 border-b border-[var(--border-color)]">
+      <div class="flex items-center gap-3">
+        <span class="text-xl">🏛️</span>
         <div>
-          <div class="logo-badge mb-3">
-            <span>🏛️</span>
-            <span>Governo do Estado</span>
-          </div>
-          <h1 class="text-3xl md:text-4xl font-extrabold text-gradient mb-2">
-            SEFAZ-MA
-          </h1>
-          <p class="text-[var(--text-secondary)] text-sm md:text-base">
-            Sistema de Monitoramento e Processamento de Notas Fiscais Eletrônicas
-          </p>
+          <h1 class="text-lg font-bold text-[var(--text-primary)]">SEFAZ-MA</h1>
+          <p class="text-[10px] text-[var(--text-muted)]">Monitoramento Fiscal</p>
         </div>
-        <div class="flex items-center gap-3">
-          <div class="text-right hidden md:block">
-            <p class="text-xs text-[var(--text-muted)]">Última atualização</p>
-            <p class="text-sm font-medium text-[var(--text-secondary)]">{{ statusProcessamento || 'Aguardando...' }}</p>
-          </div>
-          <button (click)="atualizarDados()" class="btn btn-ghost">
-            <span>🔄</span>
-            Sincronizar
-          </button>
-        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-[10px] text-[var(--text-muted)]">{{ statusProcessamento }}</span>
+        <button (click)="atualizarDados()" class="btn btn-ghost btn-sm">🔄</button>
+        <div (click)="toggleTheme()" class="theme-toggle" [class.dark]="isDarkMode" title="Alternar tema"></div>
       </div>
     </header>
 
-    <!-- KPI Dashboard -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div *ngFor="let item of dashboard; let i = index" class="kpi-card animate-fade-in-up"
-        [class.success]="item.STATUS === 'PROCESSADO'" [class.warning]="item.STATUS === 'PENDENTE'"
-        [class.danger]="item.STATUS === 'MALHA_FINA'" [style.animation-delay.ms]="i * 100">
-
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="kpi-label">{{ item.STATUS || 'PENDENTE' }}</p>
-            <p class="kpi-value" [class.text-emerald-400]="item.STATUS === 'PROCESSADO'"
-              [class.text-amber-400]="item.STATUS === 'PENDENTE'" [class.text-red-400]="item.STATUS === 'MALHA_FINA'">
-              {{ item.QTD | number }}
-            </p>
-          </div>
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-            [class.bg-emerald-500/20]="item.STATUS === 'PROCESSADO'"
-            [class.bg-amber-500/20]="item.STATUS === 'PENDENTE'" [class.bg-red-500/20]="item.STATUS === 'MALHA_FINA'">
-            <span *ngIf="item.STATUS === 'PROCESSADO'">✅</span>
-            <span *ngIf="item.STATUS === 'PENDENTE'">⏳</span>
-            <span *ngIf="item.STATUS === 'MALHA_FINA'">🚨</span>
-          </div>
-        </div>
-
-        <p class="kpi-total">
-          <span class="text-[var(--text-muted)]">Volume:</span>
-          <span class="font-semibold text-[var(--text-primary)] ml-1">{{ item.TOTAL | currency:'BRL' }}</span>
+    <!-- KPI Row - Compact -->
+    <section class="grid grid-cols-3 gap-3 mb-4">
+      <div *ngFor="let item of dashboard" class="kpi" [class.success]="item.STATUS === 'PROCESSADO'"
+        [class.warning]="item.STATUS === 'PENDENTE'" [class.danger]="item.STATUS === 'MALHA_FINA'">
+        <p class="kpi-label">{{ item.STATUS || 'PENDENTE' }}</p>
+        <p class="kpi-value" [class.text-success]="item.STATUS === 'PROCESSADO'"
+          [class.text-warning]="item.STATUS === 'PENDENTE'" [class.text-danger]="item.STATUS === 'MALHA_FINA'">
+          {{ item.QTD | number }}
         </p>
+        <p class="kpi-total">{{ item.TOTAL | currency:'BRL' }}</p>
       </div>
     </section>
 
-    <!-- Reception Card -->
-    <section class="glass-card-solid mb-8 overflow-hidden">
-      <!-- Card Header -->
-      <div class="p-6 border-b border-[var(--border-color)]">
-        <div class="flex items-center gap-3 mb-1">
-          <span class="text-xl">📡</span>
-          <h2 class="text-lg font-bold text-[var(--text-primary)]">Recepção de NFe</h2>
-        </div>
-        <p class="text-sm text-[var(--text-muted)]">Insira os dados da nota fiscal para processamento</p>
-      </div>
-
-      <!-- Form -->
-      <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-          <div class="md:col-span-5">
-            <label class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
-              Chave de Acesso
-            </label>
-            <input [(ngModel)]="novaNota.chaveAcesso" class="input w-full mono" placeholder="44 dígitos" maxlength="44">
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
-              Número
-            </label>
-            <input [(ngModel)]="novaNota.numeroNota" class="input w-full" placeholder="Ex: 1001">
-          </div>
-
-          <div class="md:col-span-3">
-            <label class="block text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2">
-              Valor Total
-            </label>
-            <input [(ngModel)]="novaNota.valorTotal" type="number" class="input w-full" placeholder="R$ 0,00">
-          </div>
-
-          <div class="md:col-span-2">
-            <button (click)="salvar()" class="btn btn-primary w-full">
-              <span>📥</span>
-              Receber
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Actions Bar -->
-      <div
-        class="p-4 bg-[rgba(0,0,0,0.2)] flex flex-wrap justify-between items-center gap-4 border-t border-[var(--border-color)]">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-[var(--text-muted)]">Processamento em lote:</span>
-        </div>
-        <button (click)="executarProcessamentoEmLote()" [disabled]="processando" [class.opacity-50]="processando"
-          class="btn btn-accent glow-gold animate-pulse-glow">
+    <!-- Form + Actions - Compact Single Line -->
+    <section class="card p-3 mb-4">
+      <div class="flex items-center gap-3 flex-wrap">
+        <input [(ngModel)]="novaNota.chaveAcesso" class="input flex-1 min-w-[200px] mono"
+          placeholder="Chave de Acesso (44 dígitos)" maxlength="44">
+        <input [(ngModel)]="novaNota.numeroNota" class="input w-24" placeholder="Número">
+        <input [(ngModel)]="novaNota.valorTotal" type="number" class="input w-28" placeholder="Valor">
+        <button (click)="salvar()" class="btn btn-primary">📥 Receber</button>
+        <div class="h-6 w-px bg-[var(--border-color)]"></div>
+        <button (click)="executarProcessamentoEmLote()" [disabled]="processando" class="btn btn-accent"
+          [class.opacity-50]="processando">
           <span *ngIf="processando" class="animate-spin">⚙️</span>
           <span *ngIf="!processando">⚡</span>
-          {{ processando ? 'Processando...' : 'Rodar Batch (Lote)' }}
+          {{ processando ? 'Processando...' : 'Batch' }}
+        </button>
+        <button (click)="gerarMassaTeste()" [disabled]="gerandoMassa" class="btn btn-ghost btn-sm">
+          🚀 {{ gerandoMassa ? '...' : 'Seed 5k' }}
         </button>
       </div>
     </section>
 
-    <!-- Table Section -->
-    <section class="glass-card-solid overflow-hidden">
-      <!-- Table Header -->
-      <div class="p-6 border-b border-[var(--border-color)] flex flex-wrap justify-between items-center gap-4">
-        <div class="flex items-center gap-3">
-          <span class="text-xl">📋</span>
-          <div>
-            <h2 class="text-lg font-bold text-[var(--text-primary)]">Notas Fiscais</h2>
-            <p class="text-xs text-[var(--text-muted)]">
-              Mostrando {{ totalCarregado | number }} registros
-            </p>
-          </div>
-        </div>
-
-        <div class="flex gap-3">
-          <button (click)="gerarMassaTeste()" [disabled]="gerandoMassa" class="btn btn-ghost text-sm">
-            <span *ngIf="gerandoMassa" class="animate-spin">🎲</span>
-            <span *ngIf="!gerandoMassa">🚀</span>
-            {{ gerandoMassa ? 'Gerando...' : 'Gerar Massa (5k)' }}
-          </button>
-        </div>
+    <!-- Table - Compact with Max Height -->
+    <section class="card overflow-hidden">
+      <div class="p-3 border-b border-[var(--border-color)] flex justify-between items-center">
+        <span class="text-xs font-semibold text-[var(--text-secondary)]">📋 {{ totalCarregado | number }} notas
+          carregadas</span>
+        <span *ngIf="hasMore" class="text-[10px] text-[var(--text-muted)]">+mais disponíveis</span>
       </div>
 
-      <!-- Table Container -->
-      <div class="relative overflow-x-auto">
-        <!-- Loading Overlay -->
+      <div class="relative overflow-auto" style="max-height: calc(100vh - 320px);">
+        <!-- Loading -->
         <div *ngIf="isLoading"
-          class="absolute inset-0 bg-[var(--surface-primary)]/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-          <div
-            class="w-12 h-12 border-2 border-[var(--primary-500)] border-t-transparent rounded-full animate-spin mb-3">
+          class="absolute inset-0 bg-[var(--surface-primary)]/80 z-10 flex items-center justify-center">
+          <div class="w-8 h-8 border-2 border-[var(--primary-500)] border-t-transparent rounded-full animate-spin">
           </div>
-          <span class="text-sm text-[var(--text-secondary)] animate-pulse">Carregando dados...</span>
         </div>
 
-        <table class="table-premium">
-          <thead>
+        <table class="tbl">
+          <thead class="sticky top-0">
             <tr>
-              <th class="w-20">ID</th>
-              <th>Chave de Acesso</th>
-              <th class="w-36">Valor</th>
-              <th class="w-32">Emissão</th>
-              <th class="w-36">Status</th>
+              <th class="w-16">ID</th>
+              <th>Chave</th>
+              <th class="w-28">Valor</th>
+              <th class="w-24">Data</th>
+              <th class="w-28">Status</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let n of notas; let i = index">
-              <td class="mono-cell">{{ n.id }}</td>
-              <td class="mono-cell">{{ n.chaveAcesso }}</td>
-              <td class="font-semibold text-emerald-400">{{ n.valorTotal | currency:'BRL' }}</td>
+            <tr *ngFor="let n of notas">
+              <td class="mono">{{ n.id }}</td>
+              <td class="mono">{{ n.chaveAcesso }}</td>
+              <td class="font-semibold text-success">{{ n.valorTotal | currency:'BRL' }}</td>
               <td class="text-[var(--text-secondary)]">{{ n.dataEmissao | date:'dd/MM HH:mm' }}</td>
               <td>
                 <span class="badge" [class.badge-warning]="n.status === 'PENDENTE'"
                   [class.badge-success]="n.status === 'PROCESSADO'" [class.badge-danger]="n.status === 'MALHA_FINA'">
-                  <span *ngIf="n.status === 'PROCESSADO'">●</span>
-                  <span *ngIf="n.status === 'PENDENTE'">◐</span>
-                  <span *ngIf="n.status === 'MALHA_FINA'">⚠</span>
                   {{ n.status }}
                 </span>
               </td>
             </tr>
             <tr *ngIf="notas.length === 0 && !isLoading">
-              <td colspan="5" class="p-12 text-center text-[var(--text-muted)]">
-                <div class="text-4xl mb-3 opacity-50">📭</div>
-                <p>Nenhuma nota fiscal encontrada na base.</p>
-                <p class="text-sm mt-1">Clique em "Gerar Massa" para criar dados de teste.</p>
+              <td colspan="5" class="p-6 text-center text-[var(--text-muted)]">
+                📭 Nenhuma nota. Clique em "Seed 5k" para gerar dados.
               </td>
             </tr>
           </tbody>
@@ -197,37 +104,22 @@
       </div>
 
       <!-- Load More -->
-      <div *ngIf="notas.length > 0" class="load-more-container">
-        <p class="load-more-text">
-          {{ totalCarregado | number }} notas carregadas
-          <span *ngIf="hasMore">• Mais registros disponíveis</span>
-          <span *ngIf="!hasMore">• Todos os registros carregados</span>
-        </p>
-        <button *ngIf="hasMore" (click)="carregarMais()" [disabled]="isLoadingMore" class="btn btn-primary">
+      <div *ngIf="notas.length > 0 && hasMore" class="p-3 border-t border-[var(--border-color)] text-center">
+        <button (click)="carregarMais()" [disabled]="isLoadingMore" class="btn btn-ghost btn-sm">
           <span *ngIf="isLoadingMore" class="animate-spin">⏳</span>
-          <span *ngIf="!isLoadingMore">📥</span>
-          {{ isLoadingMore ? 'Carregando...' : 'Carregar Mais' }}
+          {{ isLoadingMore ? 'Carregando...' : '↓ Carregar mais 100' }}
         </button>
       </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="mt-8 text-center text-xs text-[var(--text-muted)]">
-      <p>SEFAZ-MA • Sistema de Monitoramento Fiscal • {{ 'now' | date:'yyyy' }}</p>
-    </footer>
-
   </div>
 </div>
 
 <!-- Toast Container -->
-<div class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
-  <div *ngFor="let t of toasts"
-    class="pointer-events-auto glass-card-solid p-4 min-w-[300px] flex items-center gap-3 animate-fade-in-up"
-    [class.border-l-4]="true" [class.border-l-emerald-500]="t.type === 'success'"
-    [class.border-l-red-500]="t.type === 'error'" [class.border-l-blue-500]="t.type === 'info'">
-    <span class="text-xl">
-      {{ t.type === 'success' ? '✅' : t.type === 'error' ? '❌' : 'ℹ️' }}
-    </span>
-    <p class="font-medium text-sm text-[var(--text-primary)]">{{ t.message }}</p>
+<div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+  <div *ngFor="let t of toasts" class="pointer-events-auto card p-3 min-w-[250px] flex items-center gap-2 border-l-3"
+    [class.border-l-emerald-500]="t.type === 'success'" [class.border-l-red-500]="t.type === 'error'"
+    [class.border-l-blue-500]="t.type === 'info'">
+    <span>{{ t.type === 'success' ? '✅' : t.type === 'error' ? '❌' : 'ℹ️' }}</span>
+    <p class="text-xs text-[var(--text-primary)]">{{ t.message }}</p>
   </div>
 </div>
