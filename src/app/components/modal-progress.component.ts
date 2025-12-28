@@ -6,15 +6,29 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div *ngIf="isVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 border border-slate-100 transform transition-all animate-scale-in">
-        
-        <!-- Header -->
-        <h3 class="text-xl font-bold text-slate-800 mb-2 text-center">{{ title }}</h3>
-        <p class="text-slate-500 text-center text-sm mb-6">{{ message }}</p>
+    <!-- Non-blocking Toast positioned at bottom-right -->
+    <div *ngIf="isVisible" 
+         class="fixed bottom-24 right-6 z-40 w-96 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-slide-up">
+      
+      <!-- Header with gradient accent -->
+      <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <span class="animate-pulse">⚙️</span>
+          {{ title }}
+        </h3>
+        <button (click)="onCancel()" 
+                class="text-white/80 hover:text-white text-lg font-bold transition-colors focus:outline-none"
+                title="Cancelar">
+          ✕
+        </button>
+      </div>
+      
+      <!-- Body -->
+      <div class="p-4">
+        <p class="text-slate-600 text-sm mb-3">{{ message }}</p>
 
         <!-- Progress Container -->
-        <div class="relative w-full h-4 bg-slate-100 rounded-full overflow-hidden mb-6">
+        <div class="relative w-full h-2 bg-slate-100 rounded-full overflow-hidden">
           
           <!-- Determinate Bar -->
           <div *ngIf="mode === 'determinate'" 
@@ -29,19 +43,12 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <!-- Status Text (Determinate only) -->
-        <div *ngIf="mode === 'determinate'" class="mb-4 flex justify-end">
-          <span class="text-xs font-bold text-slate-600">{{ progress }}%</span>
+        <div *ngIf="mode === 'determinate'" class="mt-2 flex justify-between items-center">
+          <span class="text-xs text-slate-500">Progresso</span>
+          <span class="text-xs font-bold text-indigo-600">{{ progress }}%</span>
         </div>
-
-        <!-- Cancel Button -->
-        <div class="flex justify-center">
-            <button (click)="onCancel()" 
-                class="px-6 py-2 border border-red-200 text-red-600 rounded-full text-sm font-semibold hover:bg-red-50 hover:border-red-300 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                Cancelar
-            </button>
-        </div>
-
       </div>
+
     </div>
   `,
   styles: [`
@@ -54,19 +61,18 @@ import { CommonModule } from '@angular/common';
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    .animate-fade-in {
-      animation: fadeIn 0.2s ease-out;
+    .animate-slide-up {
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .animate-scale-in {
-      animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes scaleIn {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+    @keyframes slideUp {
+      from { 
+        transform: translateY(20px); 
+        opacity: 0; 
+      }
+      to { 
+        transform: translateY(0); 
+        opacity: 1; 
+      }
     }
   `]
 })

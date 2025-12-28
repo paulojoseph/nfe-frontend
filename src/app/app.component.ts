@@ -183,7 +183,7 @@ constructor(
 
   executarProcessamentoEmLote() {
     this.processando = true;
-    this.notas = []; // Limpa tabela para não pesar
+    // Mantemos a tabela visível para o usuário acompanhar em tempo real
     this.progressoPercentual = 0;
     this.statusProcessamento = 'Iniciando...';
     
@@ -232,8 +232,9 @@ constructor(
               this.modalProgress = this.progressoPercentual;
               this.modalMessage = this.statusProcessamento;
 
-              // Atualiza Dashboard
-              this.atualizarDashboard(); 
+              // Atualiza Dashboard e Tabela em tempo real
+              this.atualizarDashboard();
+              this.atualizarTabela(); // Mostra notas sendo processadas
               
               // Se quiser ser redundante, mantenha o detectChanges, mas o NgZone já deve resolver
               this.cdRef.detectChanges();
