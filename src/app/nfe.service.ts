@@ -16,7 +16,11 @@ export class NfeService {
 
   constructor(private http: HttpClient) { }
 
-  listar(): Observable<NotaFiscal[]> {
+  listar(page: number = 0, size: number = 50): Observable<NotaFiscal[]> {
+    return this.http.get<NotaFiscal[]>(`${this.API_URL}?page=${page}&size=${size}`);
+  }
+
+  listarTodas(): Observable<NotaFiscal[]> {
     return this.http.get<NotaFiscal[]>(this.API_URL);
   }
 

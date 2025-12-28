@@ -44,6 +44,13 @@ export class AppComponent implements OnInit {
   toasts: Toast[] = [];
   private toastCounter = 0;
 
+  // Pagination
+  currentPage = 0;
+  pageSize = 50;
+  hasMore = true;
+  isLoadingMore = false;
+  totalCarregado = 0;
+
   // Modal State
   modalVisible = false;
   modalTitle = '';
@@ -90,11 +97,15 @@ constructor(
 
   atualizarTabela() {
     this.isLoading = true;
-    this.service.listar().subscribe({
+    this.currentPage = 0;
+    this.hasMore = true;
+    this.service.listar(0, this.pageSize).subscribe({
         next: (dados) => {
           console.log('Notas carregadas:', dados?.length);
           this.ngZone.run(() => {
             this.notas = dados;
+            this.totalCarregado = dados.length;
+            this.hasMore = dados.length >= this.pageSize;
             this.isLoading = false;
             this.cdRef.detectChanges();
           });
@@ -104,6 +115,29 @@ constructor(
           this.isLoading = false;
           this.showToast('error', 'Erro ao carregar lista de notas.');
         }
+    });
+  }
+
+  carregarMais() {
+    if (this.isLoadingMore || !this.hasMore) return;
+    
+    this.isLoadingMore = true;
+    this.currentPage++;
+    
+    this.service.listar(this.currentPage, this.pageSize).subscribe({
+      next: (dados) => {
+        this.ngZone.run(() => {
+          this.notas = [...this.notas, ...dados];
+          this.totalCarregado = this.notas.length;
+          this.hasMore = dados.length >= this.pageSize;
+          this.isLoadingMore = false;
+          this.cdRef.detectChanges();
+        });
+      },
+      error: () => {
+        this.isLoadingMore = false;
+        this.showToast('error', 'Erro ao carregar mais notas.');
+      }
     });
   }
 
